@@ -36,6 +36,8 @@ def fetch(ctx, base, src):
 
 def main():
     global seen
+    if os.environ.get("TEST_EMAIL") == "1":
+        notify("Ross Recruit alerts: test email", "If you can read this, email alerts are working."); print("test email sent"); return
     if not Path("storage_state.json").exists():
         Path("storage_state.json").write_bytes(base64.b64decode(os.environ["ROSS_STORAGE_STATE"]))
     first_run, seen = seen is None, (seen or {})

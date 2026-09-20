@@ -2,6 +2,8 @@ name: poll
 on:
   schedule: [{cron: "*/5 * * * *"}]   # GitHub may delay/skip runs; see README
   workflow_dispatch:
+    inputs:
+      test_email: {description: Send a test email only, default: "0"}
 concurrency: poll
 permissions: {contents: write}
 jobs:
@@ -18,6 +20,7 @@ jobs:
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          TEST_EMAIL: ${{ github.event.inputs.test_email }}
           ALERT_EMAIL: neerajb@umich.edu
       - run: |
           git config user.name bot; git config user.email bot@users.noreply.github.com
