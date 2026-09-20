@@ -1,0 +1,42 @@
+base_url: https://michiganross.12twenty.com
+
+# Optional company filter (case-insensitive substring). Empty list = alert on ALL new events.
+companies: []
+
+# JSON sources, polled with your saved session (POST with paging).
+sources:
+  - name: Events
+    path: /api/v2/Events/post-query
+    body:   # same query the site's own events list runs: upcoming events only
+      ShouldCalculateTotal: true
+      PageSize: 100
+      ShouldCalculatePaging: true
+      IsSortAsc: true
+      sortBy: 1
+      Filters:
+        - {SelectedIds: [], PreventAutoOpen: false, Id: 0, AttributeName: event__end_date,
+           IsEntityVisibility: false, SelectedId: 15, IsExcluded: false, TypeId: 1, HasValue: true}
+      StudentGroupIds: []
+      IsForCalendarView: false
+      OnlyMine: false
+    link: "/events#/events/home"
+    text: "{CompanyName} — {Name} [{EventTypeName}] {StartDate}"
+    match_fields: [CompanyName, Name]
+  - name: Job Postings
+    path: /api/v2/JobPostings/post-query
+    max_pages: 3          # newest 300 postings by posting date
+    body:
+      ShouldCalculateTotal: true
+      PageSize: 100
+      ShouldCalculatePaging: true
+      IsSortAsc: false
+      sortBy: 1           # Posting Date
+      Filters: []
+      StudentGroupIds: []
+    keep:                 # your usual status filter (applied client-side)
+      StatusName: ["Approved", "Application Open"]
+    exclude:              # everything except pure full-time roles; delete to include full-time
+      JobPostingJobTypeNames: ["Full-time"]
+    link: "/jobPostings#/jobPostings/index?viewId=1&tab=all"
+    text: "{CompanyName} — {JobTitle} [{JobPostingJobTypeNames}] {LocationDisplay}, apply by {ApplicationDeadlineDate}"
+    match_fields: [CompanyName, JobTitle]
