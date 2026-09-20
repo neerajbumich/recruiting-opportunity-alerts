@@ -40,6 +40,18 @@ def main():
         notify("Ross Recruit alerts: test email", "If you can read this, email alerts are working."); print("test email sent"); return
     if not Path("storage_state.json").exists():
         Path("storage_state.json").write_bytes(base64.b64decode(os.environ["ROSS_STORAGE_STATE"]))
+    if os.environ.get("SEND_ALL") == "1":
+        base, lines = CFG["base_url"], []
+        with sync_playwright() as p:
+            ctx = p.chromium.launch().new_context(storage_state="storage_state.json")
+            for src in CFG["sources"]:
+                for it in fetch(ctx, base, src).values():
+                    if any(str(it.get(f)) not in ok for f, ok in src.get("keep", {}).items()): continue
+                    if any(str(it.get(f)) in bad for f, bad in src.get("exclude", {}).items()): continue
+                    text = src["text"].format_map({k: it.get(k, "") for k in re.findall(r"{(\w+)}", src["text"])})
+                    lines.append(f"[{src['name']}] {text}")
+        notify(f"Ross Recruit: current snapshot ({len(lines)} items)", "\n".join(lines) + f"\n\n{base}")
+        print(f"snapshot of {len(lines)} items sent"); return
     first_run, seen = seen is None, (seen or {})
     base, new = CFG["base_url"], []
     with sync_playwright() as p:

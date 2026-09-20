@@ -3,6 +3,7 @@ on:
   schedule: [{cron: "*/5 * * * *"}]   # GitHub may delay/skip runs; see README
   workflow_dispatch:
     inputs:
+      send_all: {description: Email a snapshot of everything now, default: "0"}
       test_email: {description: Send a test email only, default: "0"}
 concurrency: poll
 permissions: {contents: write}
@@ -20,6 +21,7 @@ jobs:
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SEND_ALL: ${{ github.event.inputs.send_all }}
           TEST_EMAIL: ${{ github.event.inputs.test_email }}
           ALERT_EMAIL: neerajb@umich.edu
       - run: |
