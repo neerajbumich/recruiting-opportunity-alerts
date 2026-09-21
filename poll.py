@@ -16,7 +16,7 @@ def notify(title, body, url=None):
         requests.post(f"https://ntfy.sh/{topic}", data=body.encode(), headers=h, timeout=15)
     if os.environ.get("SMTP_HOST"):
         m = EmailMessage(); m["Subject"] = title
-        m["From"] = os.environ["SMTP_USER"]; m["To"] = os.environ.get("ALERT_EMAIL", "neerajb@umich.edu")
+        m["From"] = os.environ["SMTP_USER"]; m["To"] = os.environ.get("ALERT_EMAIL", "neerajb@umich.edu")  # comma-separated list
         m.set_content(f"{body}\n\n{url or ''}")
         with smtplib.SMTP_SSL(os.environ["SMTP_HOST"], 465) as s:
             s.login(os.environ["SMTP_USER"], os.environ["SMTP_PASS"]); s.send_message(m)

@@ -25,7 +25,7 @@ jobs:
           SEND_ALL: ${{ github.event.inputs.send_all }}
           RECENT_HOURS: ${{ github.event.inputs.recent_hours }}
           TEST_EMAIL: ${{ github.event.inputs.test_email }}
-          ALERT_EMAIL: neerajb@umich.edu
+          ALERT_EMAIL: neerajb@umich.edu, sidchan@umich.edu
       - run: |
           git config user.name bot; git config user.email bot@users.noreply.github.com
           git add seen.json && (git commit -m "update seen" && git push) || true
