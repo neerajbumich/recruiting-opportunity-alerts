@@ -16,6 +16,10 @@ sources:
       Filters:
         - {SelectedIds: [], PreventAutoOpen: false, Id: 0, AttributeName: event__end_date,
            IsEntityVisibility: false, SelectedId: 15, IsExcluded: false, TypeId: 1, HasValue: true}
+        # Work authorization: drop events tagged "Permanent US Work Authorization Required"
+        # (keeps "Required for Certain Roles", "Not Required", and untagged events)
+        - {SelectedIds: [15086031006781], PreventAutoOpen: false, Id: 0, DynamicAttributeId: 10888805113025,
+           AttributeName: null, IsEntityVisibility: false, IsExcluded: true, TypeId: 1, HasValue: true}
       StudentGroupIds: []
       IsForCalendarView: false
       OnlyMine: false
@@ -31,7 +35,11 @@ sources:
       ShouldCalculatePaging: true
       IsSortAsc: false
       sortBy: 1           # Posting Date
-      Filters: []
+      Filters:
+        # Work authorization: drop postings requiring Permanent US auth (1), STEM-eligible degree (5)
+        # or other authorization (3); keeps "All Work Authorizations Accepted" and untagged postings
+        - {SelectedIds: [1, 5, 3], PreventAutoOpen: false, Id: 0, AttributeName: job_posting__work_authorization,
+           IsEntityVisibility: false, IsExcluded: true, TypeId: 1, HasValue: true}
       StudentGroupIds: []
     keep:                 # your usual status filter (applied client-side)
       StatusName: ["Approved", "Application Open"]
