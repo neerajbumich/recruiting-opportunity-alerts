@@ -1,4 +1,4 @@
-import base64, json, os, re, smtplib, sys
+import base64, datetime as dt, json, os, re, smtplib, sys
 from email.message import EmailMessage
 from pathlib import Path
 import requests, yaml
@@ -48,9 +48,11 @@ def main():
                 for it in fetch(ctx, base, src).values():
                     if any(str(it.get(f)) not in ok for f, ok in src.get("keep", {}).items()): continue
                     if any(str(it.get(f)) in bad for f, bad in src.get("exclude", {}).items()): continue
+                    hrs = os.environ.get("RECENT_HOURS")
+                    if hrs and max(str(it.get(f) or "") for f in ("CreateDate", "PostedDate", "PublishDate", "ApprovalDate")) < (dt.datetime.now(dt.timezone.utc).replace(tzinfo=None) - dt.timedelta(hours=float(hrs))).isoformat(): continue
                     text = src["text"].format_map({k: it.get(k, "") for k in re.findall(r"{(\w+)}", src["text"])})
                     lines.append(f"[{src['name']}] {text}")
-        notify(f"Ross Recruit: current snapshot ({len(lines)} items)", "\n".join(lines) + f"\n\n{base}")
+        notify(f"Ross Recruit: {'last ' + hrs + 'h' if os.environ.get('RECENT_HOURS') else 'current'} snapshot ({len(lines)} items)", "\n".join(lines) + f"\n\n{base}")
         print(f"snapshot of {len(lines)} items sent"); return
     first_run, seen = seen is None, (seen or {})
     base, new = CFG["base_url"], []

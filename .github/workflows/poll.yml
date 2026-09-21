@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       send_all: {description: Email a snapshot of everything now, default: "0"}
+      recent_hours: {description: With send_all - only items from the last N hours, default: ""}
       test_email: {description: Send a test email only, default: "0"}
 concurrency: poll
 permissions: {contents: write}
@@ -22,6 +23,7 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           SEND_ALL: ${{ github.event.inputs.send_all }}
+          RECENT_HOURS: ${{ github.event.inputs.recent_hours }}
           TEST_EMAIL: ${{ github.event.inputs.test_email }}
           ALERT_EMAIL: neerajb@umich.edu
       - run: |
