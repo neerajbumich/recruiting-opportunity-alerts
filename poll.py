@@ -59,8 +59,10 @@ def main():
         for src in CFG["sources"]:
             try: items = fetch(ctx, base, src)
             except PermissionError:
-                notify("Ross Recruit session expired", "Run login.py locally and update the ROSS_STORAGE_STATE secret.")
-                sys.exit(1)
+                if not seen.get("_expired"):  # email once per expiry, not every run
+                    notify("Ross Recruit session expired", "Run login.py locally and update the ROSS_STORAGE_STATE secret.")
+                    seen["_expired"] = 1
+                SEEN.write_text(json.dumps(seen, indent=1)); print("session expired"); return
             for id_, it in items.items():
                 key = f"{src['name']}:{id_}"
                 if key in seen: continue
@@ -72,6 +74,7 @@ def main():
                 if not CFG.get("companies") or any(c.lower() in hay for c in CFG["companies"]):
                     new.append((src["name"], text, base + src["link"]))
         ctx.storage_state(path="storage_state.json")  # keep refreshed cookies
+    seen.pop("_expired", None)
     SEEN.write_text(json.dumps(seen, indent=1))
     if first_run:
         print(f"Baseline saved ({len(seen)} items), no alerts sent."); return
