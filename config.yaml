@@ -3,6 +3,11 @@ base_url: https://michiganross.12twenty.com
 # Optional company filter (case-insensitive substring). Empty list = alert on ALL new events.
 companies: []
 
+# Events already listed whose registration hasn't opened yet: alert once when it opens.
+# (Use the number at the end of the event's URL.)
+watch_registration:
+  - 30006101354803   # Kearney | Coffee Chats | MBA1 (registration opens 2026-09-27 1:00pm EDT)
+
 # JSON sources, polled with your saved session (POST with paging).
 sources:
   - name: Events

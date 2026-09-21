@@ -75,6 +75,15 @@ def main():
                 hay = " ".join(str(it.get(f, "")) for f in src["match_fields"]).lower()
                 if not CFG.get("companies") or any(c.lower() in hay for c in CFG["companies"]):
                     new.append((src["name"], text, base + src["link"]))
+        for ev_id in CFG.get("watch_registration", []):
+            r = ctx.request.get(f"{base}/api/v2/Events/{ev_id}")
+            if not r.ok or "json" not in r.headers.get("content-type", ""): continue
+            ev = r.json()
+            is_open = not ev["IsRegistrationBeginDateInFuture"] and not ev["IsRegistrationEndDateInPast"]
+            key = f"watch:{ev_id}"
+            if is_open and seen.get(key) != "open":
+                new.append(("Registration OPEN", f"{ev['Name']} ({ev['EventTypeName']}) {ev['StartDate']}", f"{base}/events#/events/{ev_id}"))
+            seen[key] = "open" if is_open else "waiting"
         ctx.storage_state(path="storage_state.json")  # keep refreshed cookies
     seen.pop("_expired", None)
     SEEN.write_text(json.dumps(seen, indent=1))
