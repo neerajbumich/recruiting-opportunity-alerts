@@ -5,3 +5,5 @@ api_dump.json
 .venv/
 __pycache__/
 job_reqs.json
+watch_and_renew.log
+watch_and_renew.launchd.log
