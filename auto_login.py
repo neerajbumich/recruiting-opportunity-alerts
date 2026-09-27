@@ -1,28 +1,33 @@
-"""Background-friendly login: opens a visible Chromium window and waits for the URL
-to settle on the real Ross Recruit site (i.e. you've finished signing in + Okta Verify)
-instead of requiring an Enter keypress in a terminal. Meant to be launched by
-watch_and_renew.sh, not run directly (though `python auto_login.py <url>` still works).
+"""Background-friendly login: opens a visible Chromium window and polls the browser's
+own cookie jar for the real auth cookie instead of watching page navigation (which
+proved unreliable to observe from a backgrounded Python process in this environment).
+Meant to be launched by watch_and_renew.sh, not run directly (though
+`python auto_login.py <url>` still works).
 """
 import sys, time
 from playwright.sync_api import sync_playwright
 
 START = sys.argv[1] if len(sys.argv) > 1 else "https://michiganross.12twenty.com/events"
-LOGGED_IN_HOST = "michiganross.12twenty.com"
-LOGGED_OUT_MARKERS = ("okta", "sso.12twenty.com", "shibboleth", "/login")
+AUTH_COOKIE = ".ASPXAUTH.Shared"
+AUTH_DOMAIN = "michiganross.12twenty.com"
 TIMEOUT_S = 600  # give up after 10 minutes of nobody logging in
 
 with sync_playwright() as p:
     b = p.chromium.launch(headless=False)
     ctx = b.new_context()
-    page = ctx.new_page()
-    page.goto(START)
+    ctx.new_page().goto(START)
     deadline = time.time() + TIMEOUT_S
     settled = False
+    last_count = None
     while time.time() < deadline:
-        url = page.url.lower()
-        if LOGGED_IN_HOST in url and not any(m in url for m in LOGGED_OUT_MARKERS):
-            # give the SPA a moment to finish its post-login API calls before saving
-            page.wait_for_timeout(3000)
+        cookies = ctx.cookies()
+        if len(cookies) != last_count:
+            print(f"DEBUG {len(cookies)} cookies present", flush=True)
+            last_count = len(cookies)
+        auth = next((c for c in cookies if c["name"] == AUTH_COOKIE and AUTH_DOMAIN in c["domain"]), None)
+        if auth and auth.get("value"):
+            print(f"DEBUG found {AUTH_COOKIE}, expires={auth.get('expires')}", flush=True)
+            time.sleep(2)  # let any last API calls finish
             settled = True
             break
         time.sleep(2)

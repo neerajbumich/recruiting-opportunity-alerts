@@ -6,6 +6,7 @@
 # Never proceeds past the point that needs a human tap — it just removes every step
 # around that tap.
 set -uo pipefail
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 cd "$(dirname "$0")"
 LOCK=/tmp/ross-alerts-renew.lock
 LOG=watch_and_renew.log
@@ -23,7 +24,23 @@ trap 'rm -f "$LOCK"' EXIT
 
 source .venv/bin/activate 2>/dev/null || { log "no .venv, aborting"; exit 1; }
 
-last_log=$(gh run list --workflow poll.yml --limit 1 --json databaseId -q '.[0].databaseId' 2>/dev/null | xargs -I{} gh run view {} --log 2>/dev/null)
+if ! command -v gh >/dev/null; then
+    log "ERROR: gh not found on PATH ($PATH) — cannot check status"
+    notify "Ross Recruit watcher broken" "gh CLI not found — the check failed to run at all. Ask Claude to fix it."
+    exit 1
+fi
+last_id=$(gh run list --workflow poll.yml --limit 1 --json databaseId -q '.[0].databaseId')
+if [ -z "$last_id" ]; then
+    log "ERROR: could not fetch last run id — gh auth or network problem"
+    notify "Ross Recruit watcher broken" "Could not reach GitHub to check status."
+    exit 1
+fi
+last_log=$(gh run view "$last_id" --log 2>&1)
+if [ -z "$last_log" ]; then
+    log "ERROR: gh run view returned nothing for run $last_id"
+    notify "Ross Recruit watcher broken" "Could not read the run log — check manually."
+    exit 1
+fi
 if ! echo "$last_log" | grep -q "session expired"; then
     log "session healthy, nothing to do"
     exit 0
