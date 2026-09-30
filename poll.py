@@ -8,15 +8,20 @@ CFG = yaml.safe_load(open("config.yaml"))
 SEEN = Path("seen.json")
 seen = json.loads(SEEN.read_text()) if SEEN.exists() else None  # None => first run, baseline only
 
-def notify(title, body, url=None):
+def notify(title, body, url=None, admin_only=False):
+    """admin_only=True: send only to ADMIN_EMAIL (you), not the full ALERT_EMAIL list.
+    Use this for anything that's a "go fix something" message (session expired, watcher
+    broken) rather than an actual new-event/posting alert the other recipients want."""
     topic = os.environ.get("NTFY_TOPIC")
     if topic:
         h = {"Title": title}
         if url: h["Click"] = url
         requests.post(f"https://ntfy.sh/{topic}", data=body.encode(), headers=h, timeout=15)
     if os.environ.get("SMTP_HOST"):
+        to = os.environ.get("ADMIN_EMAIL", "neerajb@umich.edu") if admin_only \
+            else os.environ.get("ALERT_EMAIL", "neerajb@umich.edu")  # comma-separated list
         m = EmailMessage(); m["Subject"] = title
-        m["From"] = os.environ["SMTP_USER"]; m["To"] = os.environ.get("ALERT_EMAIL", "neerajb@umich.edu")  # comma-separated list
+        m["From"] = os.environ["SMTP_USER"]; m["To"] = to
         m.set_content(f"{body}\n\n{url or ''}")
         with smtplib.SMTP_SSL(os.environ["SMTP_HOST"], 465) as s:
             s.login(os.environ["SMTP_USER"], os.environ["SMTP_PASS"]); s.send_message(m)
@@ -62,7 +67,7 @@ def main():
             try: items = fetch(ctx, base, src)
             except PermissionError:
                 if not seen.get("_expired"):  # email once per expiry, not every run
-                    notify("Ross Recruit session expired", "Run login.py locally and update the ROSS_STORAGE_STATE secret.")
+                    notify("Ross Recruit session expired", "Run login.py locally and update the ROSS_STORAGE_STATE secret.", admin_only=True)
                     seen["_expired"] = 1
                 SEEN.write_text(json.dumps(seen, indent=1)); print("session expired"); return
             for id_, it in items.items():
