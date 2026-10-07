@@ -1,4 +1,4 @@
-# Product case study: Ross Recruit Alerts
+# Product case study: Recruiting Opportunity Alerts
 
 ## Context and hypothesis
 

@@ -1,6 +1,6 @@
-# Ross Recruit Alerts
+# Recruiting Opportunity Alerts
 
-**A recruiting opportunity monitor built by Neeraj Banisetti.** Ross Recruit Alerts turns repeated checks of a recruiting portal into notifications about new events, job postings and watched registration openings.
+**A recruiting opportunity monitor built by Neeraj Banisetti.** Recruiting Opportunity Alerts turns repeated checks of a recruiting portal into notifications about new events, job postings and watched registration openings.
 
 Built for an MBA recruiting workflow, the project demonstrates product skills in problem framing, prioritization, relevance filtering, notification design and operating a service with expiring authentication.
 
